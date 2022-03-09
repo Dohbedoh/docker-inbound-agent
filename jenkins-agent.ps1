@@ -33,7 +33,9 @@ Param(
     $InstanceIdentity = '',
     $Protocols = '',
     $JenkinsJavaBin = '',
-    $JavaHome = $env:JAVA_HOME
+    $JavaHome = $env:JAVA_HOME,
+    $JavaOpts = $env:JAVA_OPTS,
+    $JenkinsJavaOpts = ''
 )
 
 # Usage jenkins-agent.ps1 [options] -Url http://jenkins -Secret [SECRET] -Name [AGENT_NAME]
@@ -55,6 +57,16 @@ if(![System.String]::IsNullOrWhiteSpace($Cmd)) {
 	# if `docker run` only has one argument, we assume user is running alternate command like `powershell` or `pwsh` to inspect the image
 	Invoke-Expression "$Cmd"
 } else {
+
+    if(![System.String]::IsNullOrWhiteSpace($JenkinsJavaOpts)) {
+        $AgentArguments += @(`"$JenkinsJavaOpts`")
+    } else {
+        # if JAVA_OPTS is defined, use it
+        if (![System.String]::IsNullOrWhiteSpace($JavaOpts)) {
+            $AgentArguments += @(`"$JavaOpts`")
+        }
+    }
+
     $AgentArguments = @("-cp", "C:/ProgramData/Jenkins/agent.jar", "hudson.remoting.jnlp.Main", "-headless")
 
     # this maps the variable name from the CmdletBinding to environment variables
